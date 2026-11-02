@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+saidas/*
+!saidas/.gitkeep
+.venv/
+.vscode/
+.idea/
