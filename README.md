@@ -1,54 +1,58 @@
 # Mic-1
 
-Projeto da segunda avaliação de Arquitetura de Computadores II (UFPB).
+Projeto da 2ª avaliação de Arquitetura de Computadores II (UFPB, 2026.2), com a profª Sarah Pontes Madruga.
 
-Simulador da Mic-1 modificada em Python, executando microinstruções e as instruções ILOAD, DUP e BIPUSH da IJVM.
+É um simulador da Mic-1 modificada feito em Python. Ele roda as microinstruções da máquina e, no final, as instruções ILOAD, DUP e BIPUSH da IJVM.
+
+## Grupo
+
+- Luciana Nascimento - [lucianahonorio](https://github.com/lucianahonorio)
+- Pierre Queiroz - [pierrequeiroz2006](https://github.com/pierrequeiroz2006)
+- Sofia Araujo - [sofiaoaraujo](https://github.com/sofiaoaraujo)
 
 ## Como rodar
 
-Precisa de Python 3.
+Só precisa do Python 3.
 
 Etapa 1 (ULA):
 
-    python main.py --etapa1 entradas/programa_etapa1.txt
+    python3 main.py --etapa1 entradas/programa_etapa1.txt
 
-Etapa 2 Tarefa 1 (ULA com deslocador):
+Etapa 2, tarefa 1 (ULA com deslocador):
 
-    python main.py --etapa2 entradas/programa_etapa2_tarefa1.txt
+    python3 main.py --etapa2 entradas/programa_etapa2_tarefa1.txt
 
-Microinstruções (etapas 2 e 3):
+Etapa 2, tarefa 2 (caminho de dados):
 
-    python main.py --micro entradas/microinstrucoes.txt --regs entradas/registradores.txt --dados entradas/dados.txt
+    python3 main.py --micro entradas/programa_etapa2_tarefa2.txt --regs entradas/registradores_etapa2_tarefa2.txt
 
-Instruções IJVM:
+Instruções da IJVM (ainda não terminado):
 
-    python main.py --ijvm entradas/instrucoes.txt --regs entradas/registradores.txt --dados entradas/dados.txt
+    python3 main.py --ijvm entradas/instruções.txt --regs entradas/registradores_etapa3_tarefa1.txt --dados entradas/dados_etapa3_tarefa1.txt
 
-O log aparece no terminal e é salvo em `saidas/log.txt` (dá pra mudar com `--saida`).
+O log sai no terminal e também fica salvo em `saidas/log.txt`. Para salvar em outro lugar, use `--saida`.
 
 ## Testes
 
-Usam só o `unittest` do Python, não precisa instalar nada. Na raiz do projeto:
+Usamos o `unittest`, que já vem com o Python. Na pasta do projeto:
 
     python3 -m unittest -v
 
-- `tests/test_ula.py`: operações da ULA conferidas à mão (AND, OR, NOT B, soma, INVA, INC, enables, vai-um, N, Z, SLL8 e SRA1).
-- `tests/test_caminho.py`: decodificador do barramento B, seletor do barramento C, exemplos do PDF e o fetch.
-- `tests/test_etapas.py`: roda cada modo e compara com os exemplos em `gabaritos/`. As linhas que podem diferir estão listadas no próprio teste, cada uma com o motivo.
+O `test_ula.py` testa as operações da ULA com valores que calculamos à mão. O `test_caminho.py` testa os barramentos B e C, os exemplos do PDF e o fetch. O `test_etapas.py` roda o programa em cada modo e compara o log com as saídas de exemplo da professora. As linhas que dão diferente estão listadas nele, cada uma com o motivo.
 
-## Divergências com os exemplos
+## Diferenças em relação aos exemplos
 
-Seguimos o enunciado (PDF 2026.2). Os exemplos da professora parecem vir de uma versão anterior do projeto e diferem dele em alguns pontos:
+Seguimos o PDF do enunciado. Alguns arquivos de exemplo parecem ser de uma versão mais antiga do projeto, então nem tudo bate:
 
-- Etapa 1: a linha 1 de `programa_etapa1.txt` é `111110`, mas o exemplo de saída mostra `IR = 111100`. Por isso o teste usa `programa_etapa1_teste.txt`, uma cópia com essa linha trocada.
-- Etapa 2 Tarefa 1: no ciclo 1 o exemplo mostra `sd = 0x200`, mas SLL8 de `0x80000001` dá `0x100`. No ciclo 2 o exemplo mostra `n = 0` com `Sd = 0xC0000000`, que é negativo, então N = 1.
-- Etapa 2 Tarefa 2: o exemplo completa MBR com zeros e MBRU com sinal (o PDF pede o contrário), trata o código 7 do barramento B como OPC (no PDF é TOS), lista no topo uma linha que não está no programa e numera o fim como `Cycle 3` em vez de `Cycle 4`.
-- PDF: o próprio enunciado se contradiz. Nos exemplos (3) e (4) o texto diz que o barramento B é LV, mas os bits do barramento B são `0100`. Pela tabela do decodificador, `0100` = 4 é SP e LV é `0101` = 5, e o exemplo (5) usa os mesmos bits `0100` chamando de SP. Seguimos a tabela: a instrução `001111000000000100100` faz MDR = MDR + SP, e não MDR + LV como diz o texto.
+- Etapa 1: a primeira linha do `programa_etapa1.txt` é `111110`, mas a saída de exemplo mostra `IR = 111100`. Por isso criamos o `programa_etapa1_teste.txt`, igual ao original com essa linha trocada.
+- Etapa 2, tarefa 1: no ciclo 1 o exemplo dá `sd = 0x200`, mas o SLL8 de `0x80000001` dá `0x100`. No ciclo 2 o exemplo mostra `n = 0`, só que `Sd = 0xC0000000` é negativo, então o certo é N = 1.
+- Etapa 2, tarefa 2: no exemplo o MBR é completado com zeros e o MBRU com o sinal (o PDF pede o contrário), e o código 7 do barramento B aparece como OPC (no PDF é TOS). Ele também lista no começo uma linha que não está no programa e termina em `Cycle 3`, quando o certo seria `Cycle 4`.
+- O próprio PDF se contradiz nos exemplos (3) e (4). O texto diz que o barramento B é o LV, mas os bits são `0100`. Pela tabela do decodificador, `0100` é o SP (o LV é `0101`), e o exemplo (5) usa os mesmos `0100` chamando de SP. Seguimos a tabela, então `001111000000000100100` faz MDR = MDR + SP.
 
 ## Pastas
 
-- `mic1/`: código da máquina (ULA, registradores, memória, CPU, tradutor, log)
-- `entradas/`: arquivos de programa, registradores e dados
+- `mic1/`: código da máquina (ULA, registradores, memória, CPU, tradutor e log)
+- `entradas/`: programas, registradores e dados
 - `gabaritos/`: saídas de exemplo da professora
 - `saidas/`: logs gerados
-- `tests/`: comparação das saídas com os gabaritos
+- `tests/`: testes
