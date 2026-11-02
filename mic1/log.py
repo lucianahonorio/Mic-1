@@ -13,8 +13,10 @@ class Log:
     def separador(self, tamanho=60):
         self.escrever("=" * tamanho)
 
-    def registradores(self, titulo, valores):
+    def registradores(self, titulo, valores, estrelas=False):
         self.escrever(titulo)
+        if estrelas:
+            self.escrever("*" * 31)
         for nome in ORDEM_LOG:
             if nome == "MBR":
                 bits = format(valores[nome], "08b")
@@ -23,7 +25,10 @@ class Log:
             self.escrever(nome.lower() + " = " + bits)
 
     def memoria(self, titulo, linhas):
-        pass
+        self.escrever(titulo)
+        self.escrever("*" * 31)
+        for valor in linhas:
+            self.escrever(format(valor, "032b"))
 
     def salvar(self):
         with open(self.caminho, "w") as f:
