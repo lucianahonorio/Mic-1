@@ -7,6 +7,9 @@ class Log:
         print(texto)
         self.linhas.append(texto)
 
+    def separador(self):
+        self.escrever("=" * 60)
+
     def registradores(self, titulo, valores):
         pass
 

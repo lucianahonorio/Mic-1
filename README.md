@@ -12,6 +12,10 @@ Etapa 1 (ULA):
 
     python main.py --etapa1 entradas/programa_etapa1.txt
 
+Etapa 2 Tarefa 1 (ULA com deslocador):
+
+    python main.py --etapa2 entradas/programa_etapa2_tarefa1.txt
+
 Microinstruções (etapas 2 e 3):
 
     python main.py --micro entradas/microinstrucoes.txt --regs entradas/registradores.txt --dados entradas/dados.txt
