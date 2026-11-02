@@ -75,6 +75,48 @@ def executar_ula(caminho, log, a, b, etapa2):
         log.separador()
 
 
+def executar_micro(caminho, caminho_regs, log):
+    linhas = ler_linhas(caminho)
+
+    regs = Registradores()
+    regs.carregar(caminho_regs)
+    cpu = CPU(regs)
+
+    for linha in linhas:
+        log.escrever(linha)
+    log.escrever()
+    log.separador(53)
+    log.registradores("> Initial register states", regs.valores)
+    log.escrever()
+    log.separador(53)
+    log.escrever("Start of program")
+    log.separador(53)
+
+    ciclo = 0
+    for palavra in linhas:
+        ciclo += 1
+        controle, seletor_c, memoria, codigo_b = cpu.decodificar(palavra)
+        nome_b = regs.nome_b(int(codigo_b, 2))
+        nomes_c = regs.habilitados_c(seletor_c)
+
+        log.escrever("Cycle " + str(ciclo))
+        log.escrever("ir = " + controle + " " + seletor_c + " " + codigo_b)
+        log.escrever()
+        log.escrever("b_bus = " + nome_b.lower())
+        log.escrever("c_bus = " + ", ".join(nome.lower() for nome in nomes_c))
+        log.escrever()
+        log.registradores("> Registers before instruction", regs.copia())
+
+        cpu.executar(palavra)
+
+        log.escrever()
+        log.registradores("> Registers after instruction", regs.copia())
+        log.separador(53)
+
+    log.escrever("Cycle " + str(ciclo + 1))
+    log.escrever("No more lines, EOP.")
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--etapa1")
@@ -93,7 +135,7 @@ def main():
     elif args.etapa2:
         executar_ula(args.etapa2, log, A_ETAPA2, B_ETAPA2, True)
     elif args.micro:
-        pass
+        executar_micro(args.micro, args.regs, log)
     elif args.ijvm:
         pass
     else:
