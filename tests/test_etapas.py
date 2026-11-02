@@ -41,7 +41,9 @@ DIVERGENCIAS_2_2 = {
 def rodar(*argumentos):
     with tempfile.TemporaryDirectory() as pasta:
         saida = os.path.join(pasta, "log.txt")
-        comando = [sys.executable, "main.py"] + list(argumentos) + ["--saida", saida]
+        dados = os.path.join(pasta, "dados.txt")
+        comando = [sys.executable, "main.py"] + list(argumentos)
+        comando += ["--saida", saida, "--dados-saida", dados]
         subprocess.run(comando, cwd=RAIZ, check=True, capture_output=True)
         with open(saida, encoding="utf-8") as f:
             return f.read().splitlines()
@@ -85,6 +87,21 @@ class TestEtapas(unittest.TestCase):
         esperado = gabarito("saída_etapa2_tarefa2.txt")
         self.confere_divergencias(esperado, DIVERGENCIAS_2_2)
         self.assertEqual(saida, corrigir(esperado, DIVERGENCIAS_2_2))
+
+    def test_etapa3_tarefa1(self):
+        # o gabarito parte de outro estado inicial (MAR = SP = 4, mem[4] = 2,
+        # 16 linhas), então usamos os arquivos _teste copiados dele
+        saida = rodar("--etapa3", "entradas/microinstruções_etapa3_tarefa1.txt",
+                      "--regs", "entradas/registradores_etapa3_tarefa1_teste.txt",
+                      "--dados", "entradas/dados_etapa3_tarefa1_teste.txt")
+        self.assertEqual(saida, gabarito("saída_etapa3_tarefa1.txt"))
+
+    def test_etapa3_tarefa1_original(self):
+        # com os arquivos originais só conferimos que roda até o fim
+        saida = rodar("--etapa3", "entradas/microinstruções_etapa3_tarefa1.txt",
+                      "--regs", "entradas/registradores_etapa3_tarefa1.txt",
+                      "--dados", "entradas/dados_etapa3_tarefa1.txt")
+        self.assertEqual(saida[-2:], ["Cycle 3", "No more lines, EOP."])
 
 
 if __name__ == "__main__":
