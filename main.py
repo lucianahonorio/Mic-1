@@ -50,6 +50,12 @@ def executar_ula(caminho, log, a, b, etapa2):
         else:
             controle = "00" + ir
 
+        # a palavra tem que ter 6 bits (etapa 1) ou 8 bits (etapa 2), só com 0 e 1
+        if len(controle) != 8 or any(c not in "01" for c in controle):
+            log.escrever("> Error, invalid control signals.")
+            log.separador()
+            continue
+
         try:
             sd, vai_um, n, z = ula(controle, a, b)
         except ValueError:

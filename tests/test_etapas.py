@@ -75,6 +75,16 @@ class TestEtapas(unittest.TestCase):
         saida = rodar("--etapa1", "entradas/programa_etapa1_teste.txt")
         self.assertEqual(saida, gabarito("saída_etapa1.txt"))
 
+    def test_etapa1_linha_invalida(self):
+        with tempfile.TemporaryDirectory() as pasta:
+            programa = os.path.join(pasta, "programa.txt")
+            with open(programa, "w") as f:
+                f.write("1111\n11a100\n111100\n")
+            saida = rodar("--etapa1", programa)
+        self.assertEqual(saida.count("> Error, invalid control signals."), 2)
+        self.assertIn("co = 1", saida)
+        self.assertIn("> Line is empty, EOP.", saida)
+
     def test_etapa2_tarefa1(self):
         saida = rodar("--etapa2", "entradas/programa_etapa2_tarefa1.txt")
         esperado = gabarito("saída_etapa2_tarefa1.txt")
