@@ -177,6 +177,95 @@ def executar_etapa3(caminho, caminho_regs, caminho_dados, caminho_dados_saida, l
     mem.salvar(caminho_dados_saida)
 
 
+def ler_instrucoes(caminho):
+    instrucoes = []
+    with open(caminho, encoding="utf-8") as f:
+        for linha in f:
+            # permite comentários com # no arquivo de instruções
+            linha = linha.split("#")[0].strip()
+            if linha:
+                instrucoes.append(linha)
+    return instrucoes
+
+
+def executar_ijvm(caminho, caminho_regs, caminho_dados, caminho_dados_saida, log):
+    instrucoes = ler_instrucoes(caminho)
+
+    regs = Registradores()
+    regs.carregar(caminho_regs)
+    mem = Memoria(caminho_dados)
+    mem.carregar()
+    cpu = CPU(regs, mem)
+
+    log.separador()
+    log.escrever("Program")
+    log.escrever("*" * 31)
+    for instrucao in instrucoes:
+        log.escrever(instrucao)
+    log.separador()
+    log.memoria("Initial memory state", mem.copia())
+    log.escrever("*" * 31)
+    log.registradores("Initial register state", regs.valores, estrelas=True)
+    log.separador()
+    log.escrever("Start of Program")
+
+    ciclo = 0
+    for numero, instrucao in enumerate(instrucoes, 1):
+        try:
+            micros = traduzir(instrucao)
+        except ValueError as erro:
+            log.separador()
+            log.escrever("> Error: " + str(erro) + ". EOP.")
+            mem.salvar(caminho_dados_saida)
+            return
+
+        log.separador()
+        log.separador()
+        log.escrever("Instruction " + str(numero) + ": " + instrucao
+                     + " (" + str(len(micros)) + " microinstructions)")
+        log.separador()
+
+        for i, (texto, palavra) in enumerate(micros):
+            ciclo += 1
+            controle, seletor_c, memoria, codigo_b = cpu.decodificar(palavra)
+
+            if i > 0:
+                log.separador()
+            log.escrever("Cycle " + str(ciclo) + "  [" + instrucao + "]  " + texto)
+            log.escrever("ir = " + controle + " " + seletor_c + " " + memoria + " " + codigo_b)
+            if memoria == "11":
+                # fetch não usa a ULA nem os barramentos
+                log.escrever("b = -")
+                log.escrever("c = -")
+            else:
+                nomes_c = regs.habilitados_c(seletor_c)
+                # com ENB = 0 o barramento B não entra na ULA
+                usa_b = controle[5] == "1"
+                log.escrever("b = " + (regs.nome_b(int(codigo_b, 2)).lower() if usa_b else "-"))
+                log.escrever("c = " + (", ".join(n.lower() for n in nomes_c) or "-"))
+            log.escrever()
+            log.registradores("> Registers before instruction", regs.copia(), estrelas=True)
+
+            try:
+                cpu.executar(palavra)
+            except IndexError as erro:
+                log.escrever()
+                log.escrever("> Error: " + str(erro) + ". EOP.")
+                mem.salvar(caminho_dados_saida)
+                return
+
+            log.escrever()
+            log.registradores("> Registers after instruction", regs.copia(), estrelas=True)
+
+        log.separador()
+        log.memoria("> Memory after " + instrucao, mem.copia())
+
+    log.separador()
+    log.separador()
+    log.escrever("No more instructions, EOP.")
+    mem.salvar(caminho_dados_saida)
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--etapa1")
@@ -201,7 +290,7 @@ def main():
     elif args.etapa3:
         executar_etapa3(args.etapa3, args.regs, args.dados, args.dados_saida, log)
     elif args.ijvm:
-        pass
+        executar_ijvm(args.ijvm, args.regs, args.dados, args.dados_saida, log)
     else:
         p.print_help()
         return
