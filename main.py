@@ -1,9 +1,11 @@
 import argparse
+import os
 
 from mic1.registradores import Registradores
 from mic1.memoria import Memoria
 from mic1.cpu import CPU
 from mic1.tradutor import traduzir
+from mic1.desmontador import descrever, operacao_texto
 from mic1.log import Log
 from mic1.ula import ula, operacao
 from mic1.bits import mask32, bin32
@@ -16,12 +18,12 @@ MOSTRAR_A_INVERTIDO = False
 
 
 def ler_linhas(caminho):
-    with open(caminho) as f:
+    with open(caminho, encoding="utf-8-sig") as f:
         return [l.strip() for l in f if l.strip()]
 
 
 def executar_ula(caminho, log, a, b, etapa2):
-    with open(caminho) as f:
+    with open(caminho, encoding="utf-8-sig") as f:
         linhas = [l.strip() for l in f]
 
     log.escrever("b = " + bin32(b))
@@ -33,7 +35,15 @@ def executar_ula(caminho, log, a, b, etapa2):
     pc = 0
     while True:
         pc += 1
-        log.escrever("Cycle " + str(pc))
+        ir = linhas[pc - 1] if pc <= len(linhas) else ""
+        controle = ir if etapa2 else "00" + ir
+        valida = (len(controle) == 8 and all(c in "01" for c in controle)
+                  and controle[:2] != "11")
+        if ir != "" and valida:
+            nome_s = "Sd" if etapa2 else "S"
+            log.escrever("Cycle " + str(pc) + "  " + nome_s + " = " + operacao_texto(controle))
+        else:
+            log.escrever("Cycle " + str(pc))
         log.escrever()
         log.escrever("PC = " + str(pc))
 
@@ -105,7 +115,7 @@ def executar_micro(caminho, caminho_regs, log):
         nome_b = regs.nome_b(int(codigo_b, 2))
         nomes_c = regs.habilitados_c(seletor_c)
 
-        log.escrever("Cycle " + str(ciclo))
+        log.escrever("Cycle " + str(ciclo) + "  " + descrever(controle, seletor_c, None, codigo_b))
         log.escrever("ir = " + controle + " " + seletor_c + " " + codigo_b)
         log.escrever()
         log.escrever("b_bus = " + nome_b.lower())
@@ -149,7 +159,7 @@ def executar_etapa3(caminho, caminho_regs, caminho_dados, caminho_dados_saida, l
 
         if ciclo > 1:
             log.separador()
-        log.escrever("Cycle " + str(ciclo))
+        log.escrever("Cycle " + str(ciclo) + "  " + descrever(controle, seletor_c, memoria, codigo_b))
         log.escrever("ir = " + controle + " " + seletor_c + " " + memoria + " " + codigo_b)
         log.escrever("b = " + nome_b.lower())
         log.escrever("c = " + ", ".join(nome.lower() for nome in nomes_c))
@@ -179,7 +189,7 @@ def executar_etapa3(caminho, caminho_regs, caminho_dados, caminho_dados_saida, l
 
 def ler_instrucoes(caminho):
     instrucoes = []
-    with open(caminho, encoding="utf-8") as f:
+    with open(caminho, encoding="utf-8-sig") as f:
         for linha in f:
             # permite comentários com # no arquivo de instruções
             linha = linha.split("#")[0].strip()
@@ -275,9 +285,29 @@ def main():
     p.add_argument("--ijvm")
     p.add_argument("--regs", default="entradas/registradores.txt")
     p.add_argument("--dados", default="entradas/dados.txt")
-    p.add_argument("--saida", default="saidas/log.txt")
-    p.add_argument("--dados-saida", default="saidas/dados.txt")
+    p.add_argument("--saida")
+    p.add_argument("--dados-saida")
     args = p.parse_args()
+
+    # cada modo salva no próprio arquivo, com o mesmo nome do gabarito
+    if args.etapa1:
+        nome = "etapa1"
+    elif args.etapa2:
+        nome = "etapa2_tarefa1"
+    elif args.micro:
+        nome = "etapa2_tarefa2"
+    elif args.etapa3:
+        nome = "etapa3_tarefa1"
+    else:
+        nome = "ijvm"
+    if args.saida is None:
+        args.saida = "saidas/saída_" + nome + ".txt"
+    if args.dados_saida is None:
+        args.dados_saida = "saidas/dados_" + nome + ".txt"
+    for caminho in (args.saida, args.dados_saida):
+        pasta = os.path.dirname(caminho)
+        if pasta:
+            os.makedirs(pasta, exist_ok=True)
 
     log = Log(args.saida)
 

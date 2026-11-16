@@ -9,7 +9,7 @@ class Memoria:
     def carregar(self):
         # cada linha do arquivo é uma palavra de 32 bits; a linha i é o endereço i
         self.linhas = []
-        with open(self.caminho) as f:
+        with open(self.caminho, encoding="utf-8-sig") as f:
             for linha in f:
                 linha = linha.strip()
                 if linha == "":

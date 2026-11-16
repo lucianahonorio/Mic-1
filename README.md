@@ -30,7 +30,7 @@ Etapa 3, tarefa 1 (memória, microinstrução de 23 bits):
 
     python3 main.py --etapa3 entradas/microinstruções_etapa3_tarefa1.txt --regs entradas/registradores_etapa3_tarefa1.txt --dados entradas/dados_etapa3_tarefa1.txt
 
-O arquivo de dados não é alterado: a memória final fica salva em `saidas/dados.txt`. Para salvar em outro lugar, use `--dados-saida`.
+O arquivo de dados não é alterado: a memória final fica salva em `saidas/dados_etapa3_tarefa1.txt` (no modo `--ijvm`, em `saidas/dados_ijvm.txt`). Para salvar em outro lugar, use `--dados-saida`.
 
 Entregável (instruções da IJVM: ILOAD x, DUP e BIPUSH byte):
 
@@ -46,7 +46,9 @@ Cada linha do arquivo de instruções é uma instrução (maiúsculas ou minúsc
 
 O log mostra a memória inicial, os registradores antes e depois de cada microinstrução (com o texto dela, o IR e os barramentos B e C) e a memória depois de cada instrução. Quando a ULA não usa o barramento B (ENB = 0) ou na microinstrução de fetch, o log mostra `b = -`.
 
-O log sai no terminal e também fica salvo em `saidas/log.txt`. Para salvar em outro lugar, use `--saida`.
+Em todos os modos, a linha de cada ciclo mostra a operação que ele faz, montada a partir dos bits da palavra (`mic1/desmontador.py`). Por exemplo, `00110101000001001100100` aparece como `Cycle 1  MAR = SP = SP+1; wr`, e na etapa 1 `111100` aparece como `Cycle 1  S = A+B`.
+
+O log sai no terminal e também fica salvo em um `.txt` na pasta `saidas/`, com o mesmo nome do gabarito de cada modo: `saída_etapa1.txt`, `saída_etapa2_tarefa1.txt`, `saída_etapa2_tarefa2.txt`, `saída_etapa3_tarefa1.txt` e `saída_ijvm.txt`. Assim, rodar um modo não apaga a saída do outro. Para salvar em outro lugar, use `--saida`.
 
 ## Testes
 
@@ -54,7 +56,7 @@ Usamos o `unittest`, que já vem com o Python. Na pasta do projeto:
 
     python3 -m unittest -v
 
-O `test_ula.py` testa as operações da ULA com valores que calculamos à mão. O `test_caminho.py` testa os barramentos B e C, os exemplos do PDF e o fetch. O `test_memoria.py` testa a leitura e a escrita na memória, e se o READ/WRITE usa o MAR já atualizado pelo barramento C. O `test_etapas.py` roda o programa em cada modo e compara o log com as saídas de exemplo da professora. As linhas que dão diferente estão listadas nele, cada uma com o motivo. O `test_ijvm.py` testa a tradução de ILOAD, DUP e BIPUSH para microinstruções, a execução de cada uma e o programa de exemplo do PDF (no fim, mem[8] = mem[9] = 0x33, mem[10] = 2, SP = 10 e TOS = 2).
+O `test_ula.py` testa as operações da ULA com valores que calculamos à mão. O `test_caminho.py` testa os barramentos B e C, os exemplos do PDF e o fetch. O `test_memoria.py` testa a leitura e a escrita na memória, e se o READ/WRITE usa o MAR já atualizado pelo barramento C. O `test_etapas.py` roda o programa em cada modo e compara o log com as saídas de exemplo da professora. As linhas que dão diferente estão listadas nele, cada uma com o motivo. O `test_desmontador.py` confere se o texto de cada operação bate com o que a ULA calcula, nas 64 combinações de sinais. O `test_ijvm.py` testa a tradução de ILOAD, DUP e BIPUSH para microinstruções, a execução de cada uma e o programa de exemplo do PDF (no fim, mem[8] = mem[9] = 0x33, mem[10] = 2, SP = 10 e TOS = 2).
 
 ## Diferenças em relação aos exemplos
 

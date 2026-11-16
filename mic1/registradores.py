@@ -12,7 +12,7 @@ class Registradores:
         self.valores = {nome: 0 for nome in NOMES}
 
     def carregar(self, caminho):
-        with open(caminho) as f:
+        with open(caminho, encoding="utf-8-sig") as f:
             for linha in f:
                 linha = linha.strip()
                 if linha == "":

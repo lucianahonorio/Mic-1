@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -49,6 +50,11 @@ def rodar(*argumentos):
             return f.read().splitlines()
 
 
+def sem_operacao(linhas):
+    # o gabarito só tem "Cycle N"; o nosso log também mostra a operação na mesma linha
+    return [re.sub(r"^(Cycle \d+)  .*$", r"\1", l) for l in linhas]
+
+
 def gabarito(nome):
     with open(os.path.join(RAIZ, "gabaritos", nome), encoding="utf-8") as f:
         return f.read().splitlines()
@@ -73,7 +79,7 @@ class TestEtapas(unittest.TestCase):
 
     def test_etapa1(self):
         saida = rodar("--etapa1", "entradas/programa_etapa1_teste.txt")
-        self.assertEqual(saida, gabarito("saída_etapa1.txt"))
+        self.assertEqual(sem_operacao(saida), gabarito("saída_etapa1.txt"))
 
     def test_etapa1_linha_invalida(self):
         with tempfile.TemporaryDirectory() as pasta:
@@ -89,14 +95,14 @@ class TestEtapas(unittest.TestCase):
         saida = rodar("--etapa2", "entradas/programa_etapa2_tarefa1.txt")
         esperado = gabarito("saída_etapa2_tarefa1.txt")
         self.confere_divergencias(esperado, DIVERGENCIAS_2_1)
-        self.assertEqual(saida, corrigir(esperado, DIVERGENCIAS_2_1))
+        self.assertEqual(sem_operacao(saida), corrigir(esperado, DIVERGENCIAS_2_1))
 
     def test_etapa2_tarefa2(self):
         saida = rodar("--micro", "entradas/programa_etapa2_tarefa2.txt",
                       "--regs", "entradas/registradores_etapa2_tarefa2.txt")
         esperado = gabarito("saída_etapa2_tarefa2.txt")
         self.confere_divergencias(esperado, DIVERGENCIAS_2_2)
-        self.assertEqual(saida, corrigir(esperado, DIVERGENCIAS_2_2))
+        self.assertEqual(sem_operacao(saida), corrigir(esperado, DIVERGENCIAS_2_2))
 
     def test_etapa3_tarefa1(self):
         # o gabarito parte de outro estado inicial (MAR = SP = 4, mem[4] = 2,
@@ -104,14 +110,27 @@ class TestEtapas(unittest.TestCase):
         saida = rodar("--etapa3", "entradas/microinstruções_etapa3_tarefa1.txt",
                       "--regs", "entradas/registradores_etapa3_tarefa1_teste.txt",
                       "--dados", "entradas/dados_etapa3_tarefa1_teste.txt")
-        self.assertEqual(saida, gabarito("saída_etapa3_tarefa1.txt"))
+        self.assertEqual(sem_operacao(saida), gabarito("saída_etapa3_tarefa1.txt"))
 
     def test_etapa3_tarefa1_original(self):
         # com os arquivos originais só conferimos que roda até o fim
         saida = rodar("--etapa3", "entradas/microinstruções_etapa3_tarefa1.txt",
                       "--regs", "entradas/registradores_etapa3_tarefa1.txt",
                       "--dados", "entradas/dados_etapa3_tarefa1.txt")
-        self.assertEqual(saida[-2:], ["Cycle 3", "No more lines, EOP."])
+        self.assertEqual(sem_operacao(saida)[-2:], ["Cycle 3", "No more lines, EOP."])
+
+    def test_operacao_em_cada_ciclo(self):
+        saida = rodar("--etapa3", "entradas/microinstruções_etapa3_tarefa1.txt",
+                      "--regs", "entradas/registradores_etapa3_tarefa1_teste.txt",
+                      "--dados", "entradas/dados_etapa3_tarefa1_teste.txt")
+        self.assertIn("Cycle 1  SP = SP+1; rd", saida)
+        self.assertIn("Cycle 2  MAR = SP; wr", saida)
+        saida = rodar("--micro", "entradas/programa_etapa2_tarefa2.txt",
+                      "--regs", "entradas/registradores_etapa2_tarefa2.txt")
+        self.assertIn("Cycle 1  SP = LV = MBR", saida)
+        self.assertIn("Cycle 3  H = H+TOS+1", saida)
+        saida = rodar("--etapa2", "entradas/programa_etapa2_tarefa1.txt")
+        self.assertIn("Cycle 1  Sd = (A+B) << 8", saida)
 
 
 if __name__ == "__main__":
