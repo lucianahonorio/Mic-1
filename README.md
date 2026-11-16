@@ -48,7 +48,7 @@ O log mostra a memória inicial, os registradores antes e depois de cada microin
 
 Em todos os modos, a linha de cada ciclo mostra a operação que ele faz, montada a partir dos bits da palavra (`mic1/desmontador.py`). Por exemplo, `00110101000001001100100` aparece como `Cycle 1  MAR = SP = SP+1; wr`, e na etapa 1 `111100` aparece como `Cycle 1  S = A+B`.
 
-O log sai no terminal e também fica salvo em um `.txt` na pasta `saidas/`, com o mesmo nome do gabarito de cada modo: `saída_etapa1.txt`, `saída_etapa2_tarefa1.txt`, `saída_etapa2_tarefa2.txt`, `saída_etapa3_tarefa1.txt` e `saída_ijvm.txt`. Assim, rodar um modo não apaga a saída do outro. Para salvar em outro lugar, use `--saida`.
+O log sai no terminal e também fica salvo em um `.txt` na pasta `saidas/`, um para cada modo: `saida_etapa1.txt`, `saida_etapa2_tarefa1.txt`, `saida_etapa2_tarefa2.txt`, `saida_etapa3_tarefa1.txt` e `saida_ijvm.txt` (sem acento, para não dar problema no explorador de arquivos). Assim, rodar um modo não apaga a saída do outro. Para salvar em outro lugar, use `--saida`.
 
 ## Testes
 

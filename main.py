@@ -301,7 +301,7 @@ def main():
     else:
         nome = "ijvm"
     if args.saida is None:
-        args.saida = "saidas/saída_" + nome + ".txt"
+        args.saida = "saidas/saida_" + nome + ".txt"
     if args.dados_saida is None:
         args.dados_saida = "saidas/dados_" + nome + ".txt"
     for caminho in (args.saida, args.dados_saida):
